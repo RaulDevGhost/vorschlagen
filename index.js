@@ -22,6 +22,8 @@ database.once("connected", () => {
 
 app.use(express.json());
 
+console.log("hellooo");
+
 app.listen(PORT, () => console.log(`it's alive on http://localhost:${PORT}`));
 
 app.use("/users", routes);
