@@ -1,13 +1,31 @@
+require("dotenv").config();
 const express = require("express");
 const Model = require("../models/model");
+const bcrypt = require("bcrypt");
+const jwt = require("jsonwebtoken");
 
 const router = express.Router();
+
+// accessTokens
+function generateAccessToken(user) {
+  return;
+  jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, { expiresIn: "15m" });
+}
+// refreshTokens
+let refreshTokens = [];
+function generateRefreshToken(user) {
+  const refreshToken = jwt.sign(user, process.env.REFRESH_TOKEN_SECRET, {
+    expiresIn: "20m",
+  });
+  refreshTokens.push(refreshToken);
+  return refreshToken;
+}
 
 //Post Method
 router.post("/usercreator", async (req, res) => {
   const data = new Model({
-    name: req.body.name,
-    age: req.body.age,
+    username: req.body.username,
+    password: await bcrypt.hash(req.body.password, 10),
   });
 
   try {
@@ -16,6 +34,26 @@ router.post("/usercreator", async (req, res) => {
   } catch (error) {
     res.status(400).json({ message: error.message });
   }
+});
+
+router.post("/login", async (req, res) => {
+  const user = await Model.find().then((users) => {
+    users.forEach((user) => {
+      if (user.username === req.body.username) {
+        if (bcrypt.compare(req.body.password, user.password)) {
+          const accessToken = generateAccessToken({ user: req.body.username });
+          const refreshToken = generateRefreshToken({
+            user: req.body.username,
+          });
+          res.json({ accessToken: accessToken, refreshToken: refreshToken });
+        } else {
+          res.status(401).send("Password Incorrect!");
+        }
+      } else {
+        res.status(404).send("User does not exist!");
+      }
+    });
+  });
 });
 
 //Get all Method
