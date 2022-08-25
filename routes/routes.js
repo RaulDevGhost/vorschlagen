@@ -8,8 +8,7 @@ const router = express.Router();
 
 // accessTokens
 function generateAccessToken(user) {
-  return;
-  jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, { expiresIn: "15m" });
+  return jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, { expiresIn: "15m" });
 }
 // refreshTokens
 let refreshTokens = [];
@@ -22,22 +21,34 @@ function generateRefreshToken(user) {
 }
 
 //Post Method
-router.post("/usercreator", async (req, res) => {
-  const data = new Model({
-    username: req.body.username,
-    password: await bcrypt.hash(req.body.password, 10),
-  });
-
+router.post("/register", async (req, res) => {
   try {
+    const user = await Model.findOne({
+      username: new RegExp("^" + req.body.username + "$", "i"),
+    });
+    if (user) {
+      res.status(404).send("username already exist!");
+    }
+    const data = new Model({
+      username: req.body.username,
+      password: await bcrypt.hash(req.body.password, 10),
+    });
     const dataToSave = await data.save();
     res.status(200).json(dataToSave);
-  } catch (error) {
-    res.status(400).json({ message: error.message });
+  } catch (e) {
+    res.status(500).json({ message: e.message });
   }
+
+  // try {
+  //   const dataToSave = await data.save();
+  //   res.status(200).json(dataToSave);
+  // } catch (error) {
+  //   res.status(400).json({ message: error.message });
+  // }
 });
 
 router.post("/login", async (req, res) => {
-  const user = await Model.find().then((users) => {
+  await Model.find().then((users) => {
     users.forEach((user) => {
       if (user.username === req.body.username) {
         if (bcrypt.compare(req.body.password, user.password)) {
