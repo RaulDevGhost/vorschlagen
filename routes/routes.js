@@ -1,6 +1,6 @@
 require("dotenv").config();
 const express = require("express");
-const Model = require("../models/model");
+const Model = require("../models/user.model");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 
@@ -38,13 +38,6 @@ router.post("/register", async (req, res) => {
   } catch (e) {
     res.status(500).json({ message: e.message });
   }
-
-  // try {
-  //   const dataToSave = await data.save();
-  //   res.status(200).json(dataToSave);
-  // } catch (error) {
-  //   res.status(400).json({ message: error.message });
-  // }
 });
 
 router.post("/login", async (req, res) => {
