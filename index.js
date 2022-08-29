@@ -3,7 +3,8 @@ const cors = require("cors");
 const express = require("express");
 const mongoose = require("mongoose");
 const routes = require("./routes/routes");
-const Authroutes = require("./routes/auth.routes");
+const authRoutes = require("./routes/auth.routes");
+const testRoutes = require("./routes/test.routes");
 const db = require("./models");
 const Role = db.role;
 
@@ -73,4 +74,5 @@ app.use(express.json());
 app.listen(PORT, () => console.log(`it's alive on http://localhost:${PORT}`));
 
 app.use("/users", routes);
-app.use("/auth/users", Authroutes);
+app.use("/auth/users", authRoutes);
+app.use("/auth/test", testRoutes);

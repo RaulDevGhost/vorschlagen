@@ -5,15 +5,15 @@ var jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
 
 let refreshTokens = [];
-function generateRefreshToken(user) {
+generateRefreshToken = (user) => {
   const refreshToken = jwt.sign(user, process.env.REFRESH_TOKEN_SECRET, {
     expiresIn: "20m",
   });
   refreshTokens.push(refreshToken);
   return refreshToken;
-}
+};
 
-exports.signup = async (req, res) => {
+signup = async (req, res) => {
   const user = new User({
     username: req.body.username,
     email: req.body.email,
@@ -62,7 +62,7 @@ exports.signup = async (req, res) => {
     }
   });
 };
-exports.signin = (req, res) => {
+signin = (req, res) => {
   User.findOne({
     username: req.body.username,
   })
@@ -105,3 +105,10 @@ exports.signin = (req, res) => {
       });
     });
 };
+
+const authController = {
+  generateRefreshToken,
+  signin,
+  signup,
+};
+module.exports = authController;
