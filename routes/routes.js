@@ -21,24 +21,24 @@ function generateRefreshToken(user) {
 }
 
 //Post Method
-router.post("/register", async (req, res) => {
-  try {
-    const user = await Model.findOne({
-      username: new RegExp("^" + req.body.username + "$", "i"),
-    });
-    if (user) {
-      res.status(404).send("username already exist!");
-    }
-    const data = new Model({
-      username: req.body.username,
-      password: await bcrypt.hash(req.body.password, 10),
-    });
-    const dataToSave = await data.save();
-    res.status(200).json(dataToSave);
-  } catch (e) {
-    res.status(500).json({ message: e.message });
-  }
-});
+// router.post("/register", async (req, res) => {
+//   try {
+//     const user = await Model.findOne({
+//       username: new RegExp("^" + req.body.username + "$", "i"),
+//     });
+//     if (user) {
+//       res.status(404).send("username already exist!");
+//     }
+//     const data = new Model({
+//       username: req.body.username,
+//       password: await bcrypt.hash(req.body.password, 10),
+//     });
+//     const dataToSave = await data.save();
+//     res.status(200).json(dataToSave);
+//   } catch (e) {
+//     res.status(500).json({ message: e.message });
+//   }
+// });
 
 router.post("/login", async (req, res) => {
   await Model.find().then((users) => {

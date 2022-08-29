@@ -4,25 +4,20 @@ const Role = db.role;
 var jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
 
-async function hashPassword(bodyPassword) {
-  const password = bodyPassword;
-  const saltRounds = 10;
-
-  const hashedPassword = await new Promise((resolve, reject) => {
-    bcrypt.hash(password, saltRounds, function (err, hash) {
-      if (err) reject(err);
-      resolve(hash);
-    });
+let refreshTokens = [];
+function generateRefreshToken(user) {
+  const refreshToken = jwt.sign(user, process.env.REFRESH_TOKEN_SECRET, {
+    expiresIn: "20m",
   });
-
-  return hashedPassword;
+  refreshTokens.push(refreshToken);
+  return refreshToken;
 }
 
 exports.signup = async (req, res) => {
   const user = new User({
     username: req.body.username,
     email: req.body.email,
-    password: await hashPassword(req.body.password),
+    password: await bcrypt.hash(req.body.password, 10),
   });
   user.save((err, user) => {
     if (err) {
@@ -80,7 +75,7 @@ exports.signin = (req, res) => {
       if (!user) {
         return res.status(404).send({ message: "User Not found." });
       }
-      var passwordIsValid = bcrypt.compareSync(
+      const passwordIsValid = bcrypt.compareSync(
         req.body.password,
         user.password
       );
@@ -90,8 +85,11 @@ exports.signin = (req, res) => {
           message: "Invalid Password!",
         });
       }
-      var token = jwt.sign({ id: user.id }, process.env.ACCESS_TOKEN_SECRET, {
+      const token = jwt.sign({ id: user.id }, process.env.ACCESS_TOKEN_SECRET, {
         expiresIn: 86400, // 24 hours
+      });
+      const refreshToken = generateRefreshToken({
+        user: req.body.username,
       });
       var authorities = [];
       for (let i = 0; i < user.roles.length; i++) {
@@ -103,6 +101,7 @@ exports.signin = (req, res) => {
         email: user.email,
         roles: authorities,
         accessToken: token,
+        refreshToken: refreshToken,
       });
     });
 };
