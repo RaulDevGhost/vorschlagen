@@ -1,4 +1,5 @@
 const { verifySignUp } = require("../middlewares");
+const authJwt = require("../middlewares/authJwt");
 const authController = require("../controllers/auth.controller");
 const express = require("express");
 
@@ -17,15 +18,16 @@ router.post(
   authController.signup
 );
 router.post("/signin", authController.signin);
+router.post("/signout", authJwt.verifyToken, authController.signout);
 
-router.delete("/logout", (req, res) => {
-  const refreshToken = req.header("x-auth-token");
+// router.delete("/logout", (req, res) => {
+//   const refreshToken = req.header("x-auth-token");
 
-  let refreshTokens = [];
-  refreshTokens.push(authController.generateRefreshToken(req.body));
+//   let refreshTokens = [];
+//   refreshTokens.push(authController.generateRefreshToken(req.body));
 
-  refreshTokens = refreshTokens.filter((token) => token !== refreshToken);
-  res.sendStatus(204);
-});
+//   refreshTokens = refreshTokens.filter((token) => token !== refreshToken);
+//   res.sendStatus(204);
+// });
 
 module.exports = router;

@@ -19,6 +19,11 @@ const dataSchema = new mongoose.Schema({
       ref: "Role",
     },
   ],
+  tokens: [
+    {
+      type: Object,
+    },
+  ],
 });
 
 module.exports = mongoose.model("User", dataSchema);

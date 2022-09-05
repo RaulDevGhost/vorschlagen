@@ -62,6 +62,24 @@ signup = async (req, res) => {
     }
   });
 };
+
+const savingTokes = async (user, token) => {
+  let oldTokens = user.tokens || [];
+
+  if (oldTokens.length) {
+    oldTokens = oldTokens.filter((t) => {
+      const timeDiff = (Date.now() - parseInt(t.signedAt)) / 1000;
+      if (timeDiff < 86400) {
+        return t;
+      }
+    });
+  }
+
+  await User.findByIdAndUpdate(user._id, {
+    tokens: [...oldTokens, { token, signedAt: Date.now().toString() }],
+  });
+};
+
 signin = (req, res) => {
   User.findOne({
     username: req.body.username,
@@ -88,9 +106,13 @@ signin = (req, res) => {
       const token = jwt.sign({ id: user.id }, process.env.ACCESS_TOKEN_SECRET, {
         expiresIn: 86400, // 24 hours
       });
+
       const refreshToken = generateRefreshToken({
         user: req.body.username,
       });
+
+      savingTokes(user, token);
+
       var authorities = [];
       for (let i = 0; i < user.roles.length; i++) {
         authorities.push("ROLE_" + user.roles[i].name.toUpperCase());
@@ -106,9 +128,32 @@ signin = (req, res) => {
     });
 };
 
+signout = async (req, res) => {
+  if (req.headers && req.headers["x-access-token"]) {
+    const token = req.headers["x-access-token"];
+
+    if (!token) {
+      return res
+        .status(401)
+        .json({ succes: false, message: "Authorization failed!" });
+    }
+    console.log(req.user);
+    const tokens = req.user.tokens;
+    const newTokens = tokens.filter((t) => {
+      t !== token;
+    });
+
+    await User.findByIdAndUpdate(req.user._id, {
+      tokens: newTokens,
+    });
+    res.json({ succes: true, message: "Signout Succesfully" });
+  }
+};
+
 const authController = {
   generateRefreshToken,
   signin,
   signup,
+  signout,
 };
 module.exports = authController;
